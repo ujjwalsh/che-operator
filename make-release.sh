@@ -40,8 +40,8 @@ init() {
     shift 1
   done
 
-  [ -z "$QUAY_ECLIPSE_CHE_USERNAME" ] && echo "[ERROR] QUAY_ECLIPSE_CHE_USERNAME is not set" && exit 1
-  [ -z "$QUAY_ECLIPSE_CHE_PASSWORD" ] && echo "[ERROR] QUAY_ECLIPSE_CHE_PASSWORD is not set" && exit 1
+  # [ -z "$QUAY_ECLIPSE_CHE_USERNAME" ] && echo "[ERROR] QUAY_ECLIPSE_CHE_USERNAME is not set" && exit 1
+  # [ -z "$QUAY_ECLIPSE_CHE_PASSWORD" ] && echo "[ERROR] QUAY_ECLIPSE_CHE_PASSWORD is not set" && exit 1
   command -v operator-courier >/dev/null 2>&1 || { echo "[ERROR] operator-courier is not installed. Aborting."; exit 1; }
   command -v operator-sdk >/dev/null 2>&1 || { echo "[ERROR] operator-sdk is not installed. Aborting."; exit 1; }
   command -v skopeo >/dev/null 2>&1 || { echo "[ERROR] skopeo is not installed. Aborting."; exit 1; }
@@ -71,15 +71,15 @@ resetChanges() {
 
 checkoutToReleaseBranch() {
   echo "[INFO] Checking out to $BRANCH branch."
-  local branchExist=$(git ls-remote -q --heads | grep $BRANCH | wc -l)
-  if [[ $branchExist == 1 ]]; then
-    echo "[INFO] $BRANCH exists."
-    resetChanges $BRANCH
-  else
-    echo "[INFO] $BRANCH does not exist. Will be created a new one from master."
-    resetChanges master
-    git push origin master:$BRANCH
-  fi
+  # local branchExist=$(git ls-remote -q --heads | grep $BRANCH | wc -l)
+  # if [[ $branchExist == 1 ]]; then
+  #   echo "[INFO] $BRANCH exists."
+  #   resetChanges $BRANCH
+  # else
+  #   echo "[INFO] $BRANCH does not exist. Will be created a new one from master."
+  #   resetChanges master
+  #   git push origin master:$BRANCH
+  # fi
   git checkout -B $RELEASE_BRANCH
 }
 
@@ -161,8 +161,8 @@ releaseOperatorCode() {
   docker build -t "quay.io/eclipse/che-operator:${RELEASE}" .
 
   echo "[INFO] Pushing image to quay.io"
-  docker login quay.io -u "${QUAY_ECLIPSE_CHE_USERNAME}" -p "${QUAY_ECLIPSE_CHE_PASSWORD}"
-  docker push quay.io/eclipse/che-operator:$RELEASE
+  # docker login quay.io -u "${QUAY_ECLIPSE_CHE_USERNAME}" -p "${QUAY_ECLIPSE_CHE_PASSWORD}"
+  # docker push quay.io/eclipse/che-operator:$RELEASE
 }
 
 updateNightlyOlmFiles() {
