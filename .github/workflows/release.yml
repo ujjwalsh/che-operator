@@ -65,7 +65,9 @@ jobs:
           export QUAY_ECLIPSE_CHE_PASSWORD=${{ secrets.QUAY_PASSWORD }}
           
           # we usually do not update nightly files during major releases
-          if [[ ${CHE_VERSION} == *".0" ]]; then
+          echo ${CHE_VERSION}
+          if [[ ${CHE_VERSION} == *.0 ]]; then
+            git checkout master
             ./make-release.sh ${CHE_VERSION} --release --release-olm-files --update-nightly-olm-files 
           else
             git checkout ${BRANCH}
