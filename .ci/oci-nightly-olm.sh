@@ -36,9 +36,11 @@ export NAMESPACE
 export INSTALLATION_TYPE
 INSTALLATION_TYPE="catalog"
 
-export CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${platform}/manifests/che-operator.clusterserviceversion.yaml"
+export CSV_FILE
+CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${PLATFORM}/manifests/che-operator.clusterserviceversion.yaml"
 
 source "${OPERATOR_REPO}/olm/olm.sh" "${PLATFORM}" "${CSV_FILE}" "${NAMESPACE}" "${INSTALLATION_TYPE}"
+source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
 
 # run function run the tests in ci of custom catalog source.
 function run() {
@@ -46,7 +48,15 @@ function run() {
 
     oc project ${NAMESPACE}
     applyCRCheCluster
-    sleep 180
+
+    # Create and start a workspace
+    getCheAcessToken
+    chectl workspace:create --start --devfile=$OPERATOR_REPO/.ci/util/devfile-test.yaml
+
+    getCheAcessToken
+    chectl workspace:list
+    waitWorkspaceStart
+
     oc get pods -n $NAMESPACE
 }
 
