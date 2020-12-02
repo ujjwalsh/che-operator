@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-set -e
+set -ex
 
 # Detect the base directory where che-operator is cloned
 SCRIPT=$(readlink -f "$0")
@@ -17,4 +17,40 @@ export SCRIPT
 OPERATOR_REPO=$(dirname "$(dirname "$SCRIPT")");
 export OPERATOR_REPO
 
-oc get pods -n che
+# ENV used by Openshift CI
+ARTIFACTS_DIR="/tmp/artifacts"
+export ARTIFACTS_DIR
+
+# Execute olm nightly files in openshift
+PLATFORM="openshift"
+export PLATFORM
+
+# Test nightly olm files
+CHANNEL="nightly"
+export CHANNEL
+
+# Test nightly olm files
+NAMESPACE="che"
+export NAMESPACE
+
+export INSTALLATION_TYPE
+INSTALLATION_TYPE="catalog"
+
+export CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${platform}/manifests/che-operator.clusterserviceversion.yaml"
+
+source "${OPERATOR_REPO}/olm/olm.sh" "${PLATFORM}" "${CSV_FILE}" "${NAMESPACE}" "${INSTALLATION_TYPE}"
+
+# run function run the tests in ci of custom catalog source.
+function run() {
+    export OAUTH="false"
+
+    oc project ${NAMESPACE}
+    applyCRCheCluster
+    sleep 180
+    oc get pods -n $NAMESPACE
+}
+
+run
+
+# grab che-operator namespace events after running olm nightly tests
+oc get events -n ${NAMESPACE} | tee ${ARTIFACTS_DIR}/che-operator-events.log
