@@ -69,7 +69,7 @@ function applyCRCheCluster() {
     CR=$(echo "$CR" | yq -r ".spec.auth.openShiftoAuth = false")
   fi
 
-  echo "$CR" | kubectl apply -n "${namespace}" -f - --validate=false
+  echo "$CR" | oc apply -n "${NAMESPACE}" -f -
 }
 
 # Utility to get all logs from che

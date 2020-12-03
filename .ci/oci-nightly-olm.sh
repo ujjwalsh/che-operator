@@ -39,11 +39,11 @@ source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
 
 function patchCheOperatorImage() {
     echo "[INFO] Getting che operator pod name..."
-    operatorPod=$(oc get pods -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).metadata.name')
-    oc patch pod ${operatorPod} --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":'${OPERATOR_IMAGE}'}]'
+    operatorPod=$(oc get pods -o json -n ${NAMESPACE} | jq -r '.items[] | select(.metadata.name | test("che-operator-")).metadata.name')
+    oc patch pod ${operatorPod} -n ${NAMESPACE} --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":'${OPERATOR_IMAGE}'}]'
     
     # The following command retrieve the operator image
-    operatorImage=$(oc get pods -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
+    operatorImage=$(oc get pods -n ${NAMESPACE} -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
     echo "[INFO] CHE OPERATOR it is deployed with image ${operatorImage}"
 }
 
