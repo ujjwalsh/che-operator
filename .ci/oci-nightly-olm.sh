@@ -26,21 +26,50 @@ PLATFORM="openshift"
 export PLATFORM
 
 # Test nightly olm files
-CHANNEL="nightly"
-export CHANNEL
-
-# Test nightly olm files
-NAMESPACE="che"
+NAMESPACE="eclipse-che"
 export NAMESPACE
 
-export INSTALLATION_TYPE
-INSTALLATION_TYPE="catalog"
+#
+OPERATOR_IMAGE="quay.io/eclipse/che-operator:nightly"
 
 export CSV_FILE
 CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${PLATFORM}/manifests/che-operator.clusterserviceversion.yaml"
 
-source "${OPERATOR_REPO}/olm/olm.sh" "${PLATFORM}" "${CSV_FILE}" "${NAMESPACE}" "${INSTALLATION_TYPE}"
 source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
+
+function patchCheOperatorImage() {
+    echo "[INFO] Getting che operator pod name..."
+    operatorPod=$(oc get pods -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).metadata.name')
+    oc patch pod ${operatorPod} --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":'${OPERATOR_IMAGE}'}]'
+    
+    # The following command retrieve the operator image
+    operatorImage=$(oc get pods -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
+    echo "[INFO] CHE OPERATOR it is deployed with image ${operatorImage}"
+}
+
+function waitCheServerDeploy() {
+  echo "[INFO] Waiting for Che server to be deployed"
+  set +e -x
+
+  i=0
+  while [[ $i -le 480 ]]
+  do
+    status=$(oc get checluster/eclipse-che -n "${NAMESPACE}" -o jsonpath={.status.cheClusterRunning})
+    oc get pods -n "${NAMESPACE}"
+    if [ "${status:-UNAVAILABLE}" == "Available" ]
+    then
+      break
+    fi
+    sleep 10
+    ((i++))
+  done
+
+  if [ $i -gt 480 ]
+  then
+    echo "[ERROR] Che server did't start after 8 minutes"
+    exit 1
+  fi
+}
 
 # run function run the tests in ci of custom catalog source.
 function run() {
@@ -48,6 +77,7 @@ function run() {
 
     oc project ${NAMESPACE}
     applyCRCheCluster
+    waitCheServerDeploy
 
     # Create and start a workspace
     getCheAcessToken
@@ -60,6 +90,7 @@ function run() {
     oc get pods -n $NAMESPACE
 }
 
+patchCheOperatorImage
 run
 
 # grab che-operator namespace events after running olm nightly tests

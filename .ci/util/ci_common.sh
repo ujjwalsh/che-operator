@@ -57,6 +57,21 @@ function waitWorkspaceStart() {
   fi
 }
 
+function applyCRCheCluster() {
+  echo "Creating Custom Resource"
+  CRs=$(yq -r '.metadata.annotations["alm-examples"]' "${CSV_FILE}")
+  CR=$(echo "$CRs" | yq -r ".[0]")
+  if [ "${platform}" == "kubernetes" ]
+  then
+    CR=$(echo "$CR" | yq -r ".spec.k8s.ingressDomain = \"$(minikube ip).nip.io\"")
+  fi
+  if [ "${platform}" == "openshift" ] && [ "${OAUTH}" == "false" ]; then
+    CR=$(echo "$CR" | yq -r ".spec.auth.openShiftoAuth = false")
+  fi
+
+  echo "$CR" | kubectl apply -n "${namespace}" -f - --validate=false
+}
+
 # Utility to get all logs from che
 function getCheClusterLogs() {
   mkdir -p /tmp/artifacts-che
