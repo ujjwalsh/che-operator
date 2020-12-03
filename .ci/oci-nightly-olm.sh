@@ -8,6 +8,10 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
+export XDG_CONFIG_HOME=/tmp/chectl/config
+export XDG_CACHE_HOME=/tmp/chectl/cache
+export XDG_DATA_HOME=/tmp/chectl/data
+
 set -ex
 
 # Detect the base directory where che-operator is cloned
@@ -30,7 +34,8 @@ NAMESPACE="eclipse-che"
 export NAMESPACE
 
 #
-OPERATOR_IMAGE="quay.io/eclipse/che-operator:nightly"
+export
+OPERATOR_IMAGE=${CI_CHE_OPERATOR_IMAGE:-"quay.io/eclipse/che-operator:nightly"}
 
 export CSV_FILE
 CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${PLATFORM}/manifests/che-operator.clusterserviceversion.yaml"
@@ -44,7 +49,7 @@ function patchCheOperatorImage() {
     
     # The following command retrieve the operator image
     operatorImage=$(oc get pods -n ${NAMESPACE} -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
-    echo "[INFO] CHE OPERATOR it is deployed with image ${operatorImage}"
+    echo "[INFO] CHE operator image is ${operatorImage}"
 }
 
 function waitCheServerDeploy() {
