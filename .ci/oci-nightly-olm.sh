@@ -53,6 +53,10 @@ export OPERATOR_IMAGE=${CI_CHE_OPERATOR_IMAGE:-"quay.io/eclipse/che-operator:nig
 export CSV_FILE
 CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${PLATFORM}/manifests/che-operator.clusterserviceversion.yaml"
 
+# Define Che exposure strategy
+CHE_EXPOSURE_STRATEGY="multiuser"
+export CHE_EXPOSURE_STRATEGY
+
 # Import common functions utilities
 source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
 
