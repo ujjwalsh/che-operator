@@ -70,7 +70,7 @@ function applyCRCheCluster() {
   then
     CR=$(echo "$CR" | yq -r ".spec.server.serverExposureStrategy = \"${CHE_EXPOSURE_STRATEGY}\"")
   fi
-
+  echo -e "$CR"
   echo "$CR" | oc apply -n "${NAMESPACE}" -f -
 }
 
