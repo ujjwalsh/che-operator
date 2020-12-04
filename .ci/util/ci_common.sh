@@ -13,17 +13,16 @@ set -e
 
 # Get the access token from keycloak in openshift platforms and kubernetes
 function getCheAcessToken() {
-  if [[ ${PLATFORM} == "openshift" ]]
+  if [[ ${PLATFORM} == "openshift" ] && [ ${CHE_EXPOSURE_STRATEGY} == "single-host" ]]
   then
+    export CHE_HOSTNAME=$(oc get routes/che -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+    export TOKEN_ENDPOINT="https://${CHE_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
+    export CHE_ACCESS_TOKEN=$(curl --data "grant_type=password&client_id=che-public&username=admin&password=admin" -k ${TOKEN_ENDPOINT} | jq -r .access_token)
+
+  else
     export CHE_API_ENDPOINT=$(oc get route -n ${NAMESPACE} che --template={{.spec.host}})/api
 
     KEYCLOAK_HOSTNAME=$(oc get route -n ${NAMESPACE} keycloak --template={{.spec.host}})
-    TOKEN_ENDPOINT="https://${KEYCLOAK_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
-    export CHE_ACCESS_TOKEN=$(curl --data "grant_type=password&client_id=che-public&username=admin&password=admin" -k ${TOKEN_ENDPOINT} | jq -r .access_token)
-  else
-    export CHE_API_ENDPOINT=che-che.$(minikube ip).nip.io/api
-
-    KEYCLOAK_HOSTNAME=keycloak-che.$(minikube ip).nip.io
     TOKEN_ENDPOINT="https://${KEYCLOAK_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
     export CHE_ACCESS_TOKEN=$(curl --data "grant_type=password&client_id=che-public&username=admin&password=admin" -k ${TOKEN_ENDPOINT} | jq -r .access_token)
   fi
