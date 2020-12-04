@@ -63,12 +63,12 @@ function applyCRCheCluster() {
   echo "Creating Custom Resource"
   CRs=$(yq -r '.metadata.annotations["alm-examples"]' "${CSV_FILE}")
   CR=$(echo "$CRs" | yq -r ".[0]")
-  if [ "${PLATFORM}" == "kubernetes" ]
-  then
-    CR=$(echo "$CR" | yq -r ".spec.k8s.ingressDomain = \"$(minikube ip).nip.io\"")
-  fi
   if [ "${PLATFORM}" == "openshift" ] && [ "${OAUTH}" == "false" ]; then
     CR=$(echo "$CR" | yq -r ".spec.auth.openShiftoAuth = false")
+  fi
+  if [ "${CHE_EXPOSURE_STRATEGY}" == "single-host" ]
+  then
+    CR=$(echo "$CR" | yq -r ".spec.server.serverExposureStrategy = \"${CHE_EXPOSURE_STRATEGY}\"")
   fi
 
   echo "$CR" | oc apply -n "${NAMESPACE}" -f -

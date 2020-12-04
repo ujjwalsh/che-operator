@@ -50,8 +50,12 @@ export NAMESPACE
 export OPERATOR_IMAGE=${CI_CHE_OPERATOR_IMAGE:-"quay.io/eclipse/che-operator:nightly"}
 
 # Get nightly CSV
-export CSV_FILE
 CSV_FILE="${OPERATOR_REPO}/deploy/olm-catalog/eclipse-che-preview-${PLATFORM}/manifests/che-operator.clusterserviceversion.yaml"
+export CSV_FILE
+
+# Define Che exposure strategy
+CHE_EXPOSURE_STRATEGY="single-host"
+export CHE_EXPOSURE_STRATEGY
 
 # Import common functions utilities
 source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
@@ -90,7 +94,7 @@ function patchCheOperatorImage() {
     echo "[INFO] Getting che operator pod name..."
     OPERATOR_POD=$(oc get pods -o json -n ${NAMESPACE} | jq -r '.items[] | select(.metadata.name | test("che-operator-")).metadata.name')
     oc patch pod ${OPERATOR_POD} -n ${NAMESPACE} --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":'${OPERATOR_IMAGE}'}]'
-    
+
     # The following command retrieve the operator image
     OPERATOR_POD_IMAGE=$(oc get pods -n ${NAMESPACE} -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
     echo "[INFO] CHE operator image is ${OPERATOR_POD_IMAGE}"
