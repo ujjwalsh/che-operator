@@ -13,7 +13,7 @@ set -e
 
 # Get the access token from keycloak in openshift platforms and kubernetes
 function getCheAcessToken() {
-  if [[ ${PLATFORM} == "openshift" ] && [ ${CHE_EXPOSURE_STRATEGY} == "single-host" ]]; then
+  if [[ ${PLATFORM} == "openshift" ]] && [[ ${CHE_EXPOSURE_STRATEGY} == "single-host" ]];
   then
     export CHE_HOSTNAME=$(oc get routes/che -n ${NAMESPACE} -o jsonpath='{.spec.host}')
     export TOKEN_ENDPOINT="https://${CHE_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
