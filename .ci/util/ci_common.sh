@@ -16,6 +16,7 @@ function getCheAcessToken() {
   if [[ ${PLATFORM} == "openshift" ]] && [[ ${CHE_EXPOSURE_STRATEGY} == "single-host" ]];
   then
     export CHE_HOSTNAME=$(oc get routes/che -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+    export CHE_API_ENDPOINT="https://${CHE_HOSTNAME}/api"
     export TOKEN_ENDPOINT="https://${CHE_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
     export CHE_ACCESS_TOKEN=$(curl --data "grant_type=password&client_id=che-public&username=admin&password=admin" -k ${TOKEN_ENDPOINT} | jq -r .access_token)
 
