@@ -100,13 +100,6 @@ function patchCheOperatorImage() {
     echo "[INFO] CHE operator image is ${OPERATOR_POD_IMAGE}"
 }
 
-# Get Token from single host mode deployment
-function getSingleHostToken() {
-    export KEYCLOAK_HOSTNAME=$(oc get routes/che -n ${NAMESPACE} -o jsonpath='{.spec.host}')
-    export TOKEN_ENDPOINT="https://${KEYCLOAK_HOSTNAME}/auth/realms/che/protocol/openid-connect/token"
-    export CHE_ACCESS_TOKEN=$(curl --data "grant_type=password&client_id=che-public&username=admin&password=admin" -k ${TOKEN_ENDPOINT} | jq -r .access_token)
-}
-
 # Run che deployment after patch operator image.
 function deployEclipseChe() {
     export OAUTH="false"
@@ -115,12 +108,8 @@ function deployEclipseChe() {
     applyCRCheCluster
     waitCheServerDeploy
 
-    # Create a workspace
-    getCheAcessToken
-    chectl workspace:create --start --chenamespace=${NAMESPACE} --devfile=$OPERATOR_REPO/.ci/util/devfile-test.yaml
+    startNewWorkspace
 
-    # Start a workspace and wait until workspace it is alive
-    getCheAcessToken
     chectl workspace:list --chenamespace=${NAMESPACE}
     waitWorkspaceStart
 }

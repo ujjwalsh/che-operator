@@ -91,13 +91,13 @@ function printOlmCheObjects() {
 
 # Patch che operator image with image builded from source in Openshift CI job.
 function patchCheOperatorImage() {
-    echo "[INFO] Getting che operator pod name..."
+    echo -e "[INFO] Getting che operator pod name..."
     OPERATOR_POD=$(oc get pods -o json -n ${NAMESPACE} | jq -r '.items[] | select(.metadata.name | test("che-operator-")).metadata.name')
     oc patch pod ${OPERATOR_POD} -n ${NAMESPACE} --type='json' -p='[{"op": "replace", "path": "/spec/containers/0/image", "value":'${OPERATOR_IMAGE}'}]'
     
     # The following command retrieve the operator image
     OPERATOR_POD_IMAGE=$(oc get pods -n ${NAMESPACE} -o json | jq -r '.items[] | select(.metadata.name | test("che-operator-")).spec.containers[].image')
-    echo "[INFO] CHE operator image is ${OPERATOR_POD_IMAGE}"
+    echo -e "[INFO] CHE operator image is ${OPERATOR_POD_IMAGE}"
 }
 
 # Run che deployment after patch operator image.
@@ -108,12 +108,8 @@ function deployEclipseChe() {
     applyCRCheCluster
     waitCheServerDeploy
 
-    # Create a workspace
-    getCheAcessToken
-    chectl workspace:create --start --chenamespace=${NAMESPACE} --devfile=$OPERATOR_REPO/.ci/util/devfile-test.yaml
+    startNewWorkspace
 
-    # Start a workspace and wait until workspace it is alive
-    getCheAcessToken
     chectl workspace:list --chenamespace=${NAMESPACE}
     waitWorkspaceStart
 }
