@@ -12,7 +12,7 @@
 
 set -e
 
-# Create cheCluster object in Openshift ci with desired values
+# Create CheCluster object in Openshift ci with desired values
 function applyCRCheCluster() {
   echo "Creating Custom Resource"
   CRs=$(yq -r '.metadata.annotations["alm-examples"]' "${CSV_FILE}")

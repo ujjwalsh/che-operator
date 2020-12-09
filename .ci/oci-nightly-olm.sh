@@ -58,7 +58,7 @@ CHE_EXPOSURE_STRATEGY="multiuser"
 export CHE_EXPOSURE_STRATEGY
 
 # Import common functions utilities
-source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
+source "${OPERATOR_REPO}"/.ci/common.sh
 
 # catchFinish is executed after finish script.
 function catchFinish() {
@@ -79,13 +79,13 @@ function catchFinish() {
 
 # Utility to print objects created by Openshift CI automatically
 function printOlmCheObjects() {
-  echo -e "[INFO] Operator Group object created in namespace ${NAMESPACE}:"
+  echo -e "[INFO] Operator Group object created in namespace: ${NAMESPACE}"
   oc get operatorgroup -n "${NAMESPACE}" -o yaml
 
-  echo -e "[INFO] Catalog Source object created in namespace ${NAMESPACE}:"
+  echo -e "[INFO] Catalog Source object created in namespace: ${NAMESPACE}"
   oc get catalogsource -n "${NAMESPACE}" -o yaml
 
-  echo -e "[INFO] Subscription object created in namespace ${NAMESPACE}"
+  echo -e "[INFO] Subscription object created in namespace: ${NAMESPACE}"
   oc get subscription -n "${NAMESPACE}" -o yaml
 }
 

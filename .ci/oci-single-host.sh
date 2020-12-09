@@ -58,7 +58,7 @@ CHE_EXPOSURE_STRATEGY="single-host"
 export CHE_EXPOSURE_STRATEGY
 
 # Import common functions utilities
-source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
+source "${OPERATOR_REPO}"/.ci/common.sh
 
 # catchFinish is executed after finish script.
 function catchFinish() {
