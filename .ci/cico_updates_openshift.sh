@@ -11,7 +11,7 @@
 #   Red Hat, Inc. - initial API and implementation
 
 set -ex
-export $OO_INSTALL_NAMESPACE="eclipse-che"
+export OO_INSTALL_NAMESPACE="eclipse-che"
 
 echo -e "Catalog image it is: $CI_CATALOG_SOURCE_IMAGE"
 
