@@ -11,79 +11,69 @@
 #   Red Hat, Inc. - initial API and implementation
 
 set -ex
+export $OO_INSTALL_NAMESPACE="eclipse-che"
 
-init() {
-  export SCRIPT=$(readlink -f "$0")
-  export SCRIPT_DIR=$(dirname "$SCRIPT")
+echo -e "Catalog image it is: $CI_CATALOG_SOURCE_IMAGE"
 
-  if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then
-    export OPERATOR_REPO=${WORKSPACE};
-  else
-    export OPERATOR_REPO=$(dirname "$SCRIPT_DIR");
-  fi
+oc create namespace $OO_INSTALL_NAMESPACE
 
-  export PLATFORM="openshift"
-  export NAMESPACE="che"
-  export CHANNEL="stable"
-}
+OPERATORGROUP=$(
+    oc $OG_OPERATION -f - -o jsonpath='{.metadata.name}' <<EOF
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: che-ogroup
+  namespace: $OO_INSTALL_NAMESPACE
+spec:
+  targetNamespaces: [$OO_TARGET_NAMESPACES]
+EOF
+)
 
-# Utility to wait for Eclipse Che to be up in Openshift
-function waitCheUpdateInstall() {
-  export packageName=eclipse-che-preview-${PLATFORM}
-  export platformPath=${OPERATOR_REPO}/olm/${packageName}
-  export packageFolderPath="${platformPath}/deploy/olm-catalog/${packageName}"
-  export packageFilePath="${packageFolderPath}/${packageName}.package.yaml"
+CATSRC=$(
+    oc create -f - -o jsonpath='{.metadata.name}' <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  generateName: oo-
+  namespace: $OO_INSTALL_NAMESPACE
+spec:
+  sourceType: grpc
+  image: "$CI_CATALOG_SOURCE_IMAGE"
+EOF
+)
 
-  export lastCSV=$(yq -r ".channels[] | select(.name == \"${CHANNEL}\") | .currentCSV" "${packageFilePath}")
-  export lastPackageVersion=$(echo "${lastCSV}" | sed -e "s/${packageName}.v//")
+echo "CatalogSource name is \"$CATSRC\""
+echo "Creating Subscription"
 
-  echo -e "\u001b[34m Check installation last version che-operator...$lastPackageVersion \u001b[0m"
+SUB=$(
+    oc create -f - -o jsonpath='{.metadata.name}' <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  generateName: oo-
+  namespace: $OO_INSTALL_NAMESPACE
+spec:
+  name: $OO_PACKAGE
+  channel: "$OO_CHANNEL"
+  source: $CATSRC
+  sourceNamespace: $OO_INSTALL_NAMESPACE
+EOF
+)
 
-  export n=0
+echo "Subscription name is \"$SUB\""
+echo "Waiting for ClusterServiceVersion to become ready..."
 
-  while [ $n -le 360 ]
-  do
-    cheVersion=$(kubectl get checluster/eclipse-che -n "${NAMESPACE}" -o jsonpath={.status.cheVersion})
-    if [ "${cheVersion}" == $lastPackageVersion ]
-    then
-      echo -e "\u001b[32m Installed latest version che-operator: ${lastCSV} \u001b[0m"
-      break
+for _ in $(seq 1 30); do
+    CSV=$(oc -n "$OO_INSTALL_NAMESPACE" get subscription "$SUB" -o jsonpath='{.status.installedCSV}' || true)
+    if [[ -n "$CSV" ]]; then
+        if [[ "$(oc -n "$OO_INSTALL_NAMESPACE" get csv "$CSV" -o jsonpath='{.status.phase}')" == "Succeeded" ]]; then
+            echo "ClusterServiceVersion \"$CSV\" ready"
+            exit 0
+        fi
     fi
-    sleep 3
-    n=$(( n+1 ))
-  done
+    sleep 10
+done
 
-  if [ $n -gt 360 ]
-  then
-    echo "[ERROR] Latest version install for Eclipse Che failed."
-    exit 1
-  fi
-}
+sleep 2m
 
-function openshiftUpdates() {
-  "${OPERATOR_REPO}"/olm/testUpdate.sh ${PLATFORM} ${CHANNEL} ${NAMESPACE}
-
-  getCheAcessToken
-  chectl workspace:create --devfile=$OPERATOR_REPO/.ci/util/devfile-test.yaml
-
-  waitCheUpdateInstall
-  getCheAcessToken
-
-  local cheVersion=$(kubectl get checluster/eclipse-che -n "${NAMESPACE}" -o jsonpath={.status.cheVersion})
-
-  echo "[INFO] Successfully installed Eclipse Che: ${cheVersion}"
-  sleep 120
-
-  getCheAcessToken
-  workspaceList=$(chectl workspace:list)
-  workspaceID=$(echo "$workspaceList" | grep -oP '\bworkspace.*?\b')
-  chectl workspace:start $workspaceID
-  chectl workspace:list
-
-  waitWorkspaceStart
-  echo "[INFO] Successfully started an workspace on Eclipse Che: ${cheVersion}"
-}
-
-init
-source "${OPERATOR_REPO}"/.ci/util/ci_common.sh
-openshiftUpdates
+oc get pods -n $OO_INSTALL_NAMESPACE
