@@ -18,7 +18,7 @@ echo -e "Catalog image it is: $CI_CATALOG_SOURCE_IMAGE"
 oc create namespace $OO_INSTALL_NAMESPACE
 
 OPERATORGROUP=$(
-    oc $OG_OPERATION -f - -o jsonpath='{.metadata.name}' <<EOF
+    oc create -f - -o jsonpath='{.metadata.name}' <<EOF
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
