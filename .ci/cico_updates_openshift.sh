@@ -53,8 +53,8 @@ metadata:
   generateName: oo-
   namespace: $OO_INSTALL_NAMESPACE
 spec:
-  name: $OO_PACKAGE
-  channel: "$OO_CHANNEL"
+  name: eclipse-che-preview-openshift
+  channel: "stable"
   source: $CATSRC
   sourceNamespace: $OO_INSTALL_NAMESPACE
 EOF
