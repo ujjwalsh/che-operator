@@ -60,7 +60,7 @@ spec:
 EOF
 )
 
-echo "Subscription name is \"$SUB\""
+echo "Subscription naeeeme is \"$SUB\""
 echo "Waiting for ClusterServiceVersion to become ready..."
 
 for _ in $(seq 1 30); do
