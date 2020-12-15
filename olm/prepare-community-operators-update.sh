@@ -122,7 +122,7 @@ updateGraph: replaces-mode" > ${folderToUpdate}/ci.yaml
   git commit -s -m "Update eclipse-che operator for ${platform} to release ${lastPackagePreReleaseVersion}"
   echo
   echo "   - Push branch ${branch} to the '${fork_org}/community-operators' GitHub repository"
-  git push ${FORCE} "git@github.com:${fork_org}/community-operators.git" "${branch}"
+  git push ${FORCE} "https://github.com/${fork_org}/community-operators.git" "${branch}"
 
   echo
   template_file="https://raw.githubusercontent.com/operator-framework/community-operators/${base_branch}/docs/pull_request_template.md"
