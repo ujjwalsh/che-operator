@@ -19,6 +19,7 @@ package v1
 // IMPORTANT These 2 last steps are important to ensure backward compatibility with already existing `CheCluster` CRs that were created when no schema was provided.
 
 import (
+	chev1alpha1 "github.com/che-incubator/kubernetes-image-puller-operator/pkg/apis/che/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -50,6 +51,9 @@ type CheClusterSpec struct {
 	// Configuration settings specific to Che installations made on upstream Kubernetes.
 	// +optional
 	K8s CheClusterSpecK8SOnly `json:"k8s"`
+	// Kubernetes Image Puller configuration
+	// +optional
+	ImagePuller CheClusterSpecImagePuller `json:"imagePuller"`
 }
 
 // +k8s:openapi-gen=true
@@ -99,6 +103,10 @@ type CheClusterSpecServer struct {
 	// Enables the debug mode for Che server. Defaults to `false`.
 	// +optional
 	CheDebug string `json:"cheDebug,omitempty"`
+	// Comma-separated list of ClusterRoles that will be assigned to che ServiceAccount.
+	// Be aware that che-operator has to already have all permissions in these ClusterRoles to be able to grant them.
+	// +optional
+	CheClusterRoles string `json:"cheClusterRoles,omitempty"`
 	// Custom cluster role bound to the user for the Che workspaces.
 	// The default roles are used if this is omitted or left blank.
 	// +optional
@@ -515,6 +523,20 @@ type CheClusterSpecMetrics struct {
 	Enable bool `json:"enable"`
 }
 
+// +k8s:openapi-gen=true
+// Configuration settings for installation and configuration of the Kubernetes Image Puller
+// See https://github.com/che-incubator/kubernetes-image-puller-operator
+type CheClusterSpecImagePuller struct {
+	// Install and configure the Kubernetes Image Puller Operator. If true and no spec is provided,
+	// it will create a default KubernetesImagePuller object to be managed by the Operator.
+	// If false, the KubernetesImagePuller object will be deleted, and the operator will be uninstalled,
+	// regardless of whether or not a spec is provided.
+	Enable bool `json:"enable"`
+	// A KubernetesImagePullerSpec to configure the image puller in the CheCluster
+	// +optional
+	Spec chev1alpha1.KubernetesImagePullerSpec `json:"spec"`
+}
+
 // CheClusterStatus defines the observed state of Che installation
 type CheClusterStatus struct {
 	// Indicates if or not a Postgres instance has been correctly provisioned
@@ -613,4 +635,8 @@ func init() {
 func (c *CheCluster) IsAirGapMode() bool {
 	return c.Spec.Server.AirGapContainerRegistryHostname != "" ||
 		c.Spec.Server.AirGapContainerRegistryOrganization != ""
+}
+
+func (c *CheCluster) IsImagePullerSpecEmpty() bool {
+	return c.Spec.ImagePuller.Spec == (chev1alpha1.KubernetesImagePullerSpec{})
 }

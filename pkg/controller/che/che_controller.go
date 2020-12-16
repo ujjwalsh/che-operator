@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	orgv1 "github.com/eclipse/che-operator/pkg/apis/org/v1"
@@ -41,6 +42,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -70,10 +72,15 @@ func newReconciler(mgr manager.Manager) (reconcile.Reconciler, error) {
 	if err != nil {
 		return nil, err
 	}
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		return nil, err
+	}
 	return &ReconcileChe{
 		client:          mgr.GetClient(),
 		nonCachedClient: noncachedClient,
 		scheme:          mgr.GetScheme(),
+		discoveryClient: discoveryClient,
 	}, nil
 }
 
@@ -253,6 +260,9 @@ type ReconcileChe struct {
 	// to simply read objects thta we don't intend
 	// to further watch
 	nonCachedClient client.Client
+	// A discovery client to check for the existence of certain APIs registered
+	// in the API Server
+	discoveryClient discovery.DiscoveryInterface
 	scheme          *runtime.Scheme
 	tests           bool
 }
@@ -274,12 +284,15 @@ const (
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	clusterAPI := deploy.ClusterAPI{
-		Client: r.client,
-		Scheme: r.scheme,
+		Client:          r.client,
+		NonCachedClient: r.nonCachedClient,
+		DiscoveryClient: r.discoveryClient,
+		Scheme:          r.scheme,
 	}
 	// Fetch the CheCluster instance
 	tests := r.tests
 	instance, err := r.GetCR(request)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -292,9 +305,18 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 	}
 
 	deployContext := &deploy.DeployContext{
-		ClusterAPI: clusterAPI,
-		CheCluster: instance,
+		ClusterAPI:      clusterAPI,
+		CheCluster:      instance,
 		InternalService: deploy.InternalService{},
+	}
+
+	// Reconcile the imagePuller section of the CheCluster
+	imagePullerResult, err := deploy.ReconcileImagePuller(deployContext)
+	if err != nil {
+		return imagePullerResult, err
+	}
+	if imagePullerResult.Requeue || imagePullerResult.RequeueAfter > 0 {
+		return imagePullerResult, err
 	}
 
 	isOpenShift, isOpenShift4, err := util.DetectOpenShift()
@@ -368,6 +390,7 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 				return reconcile.Result{}, err
 			}
 		}
+
 	}
 
 	// Read proxy configuration
@@ -590,6 +613,24 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 		if !tests {
 			return reconcile.Result{RequeueAfter: time.Second}, err
+		}
+	}
+
+	if len(instance.Spec.Server.CheClusterRoles) > 0 {
+		cheClusterRoles := strings.Split(instance.Spec.Server.CheClusterRoles, ",")
+		for _, cheClusterRole := range cheClusterRoles {
+			cheClusterRole := strings.TrimSpace(cheClusterRole)
+			cheClusterRoleBindingName := instance.Namespace + "-che-" + cheClusterRole
+			cheClusterRoleBinding, err := deploy.SyncClusterRoleBindingToCluster(deployContext, cheClusterRoleBindingName, "che", cheClusterRole)
+			if cheClusterRoleBinding == nil {
+				logrus.Infof("Waiting on cluster role binding '%s' to be created", cheClusterRoleBindingName)
+				if err != nil {
+					logrus.Error(err)
+				}
+				if !tests {
+					return reconcile.Result{RequeueAfter: time.Second}, err
+				}
+			}
 		}
 	}
 

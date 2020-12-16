@@ -29,6 +29,10 @@ spec:
     # defaults to `che`. When set to `codeready`, CodeReady Workspaces is deployed
     # the difference is in images, labels, exec commands
     cheFlavor: ''
+    # Comma-separated list of ClusterRoles that will be assigned
+    # to che ServiceAccount. Be aware that che-operator has to already have all permissions in these
+    # ClusterRoles to be able to grant them.
+    cheClusterRoles: ''
     # specifies a custom cluster role to user for the Che workspaces
     # Uses the default roles if left blank.
     cheWorkspaceClusterRole: ''
