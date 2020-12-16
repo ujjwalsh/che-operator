@@ -64,6 +64,7 @@ echo "Subscription naeeeme is \"$SUB\""
 echo "Waiting for ClusterServiceVersion to become ready..."
 
 for _ in $(seq 1 30); do
+    oc describe subscription -n $OO_INSTALL_NAMESPACE
     CSV=$(oc -n "$OO_INSTALL_NAMESPACE" get subscription "$SUB" -o jsonpath='{.status.installedCSV}' || true)
     if [[ -n "$CSV" ]]; then
         if [[ "$(oc -n "$OO_INSTALL_NAMESPACE" get csv "$CSV" -o jsonpath='{.status.phase}')" == "Succeeded" ]]; then
