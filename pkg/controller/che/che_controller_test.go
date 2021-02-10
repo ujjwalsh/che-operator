@@ -1096,10 +1096,10 @@ func TestShouldSetUpCorrectlyInternalIdentityProviderServiceURL(t *testing.T) {
 			}
 
 			// Set up che host for route
-			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, "", "che")
+			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, orgv1.RouteCustomSettings{}, "che")
 			r.client.Create(context.TODO(), cheRoute)
 			// Set up keycloak host for route
-			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, "", deploy.IdentityProviderName)
+			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, orgv1.RouteCustomSettings{}, deploy.IdentityProviderName)
 			r.client.Create(context.TODO(), keycloakRoute)
 
 			_, err := r.Reconcile(req)
@@ -1280,16 +1280,16 @@ func TestShouldSetUpCorrectlyInternalPluginRegistryServiceURL(t *testing.T) {
 			}
 
 			// Set up che host for route
-			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, "", "che")
+			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, orgv1.RouteCustomSettings{}, "che")
 			r.client.Create(context.TODO(), cheRoute)
 			// Set up keycloak host for route
-			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, "", deploy.IdentityProviderName)
+			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, orgv1.RouteCustomSettings{}, deploy.IdentityProviderName)
 			r.client.Create(context.TODO(), keycloakRoute)
 			// Set up plugin registry host for route
-			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, "", deploy.PluginRegistryName)
+			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.PluginRegistryName)
 			r.client.Create(context.TODO(), pluginRegistryRoute)
 			// Set up devfile registry host for route
-			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, "", deploy.DevfileRegistryName)
+			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.DevfileRegistryName)
 			r.client.Create(context.TODO(), devfileRegistryRoute)
 
 			_, err := r.Reconcile(req)
@@ -1466,16 +1466,16 @@ func TestShouldSetUpCorrectlyInternalDevfileRegistryServiceURL(t *testing.T) {
 			}
 
 			// Set up che host for route
-			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, "", "che")
+			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, orgv1.RouteCustomSettings{}, "che")
 			r.client.Create(context.TODO(), cheRoute)
 			// Set up keycloak host for route
-			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, "", deploy.IdentityProviderName)
+			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, orgv1.RouteCustomSettings{}, deploy.IdentityProviderName)
 			r.client.Create(context.TODO(), keycloakRoute)
 			// Set up plugin registry host for route
-			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, "", deploy.PluginRegistryName)
+			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.PluginRegistryName)
 			r.client.Create(context.TODO(), pluginRegistryRoute)
 			// Set up devfile registry host for route
-			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, "", deploy.DevfileRegistryName)
+			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.DevfileRegistryName)
 			r.client.Create(context.TODO(), devfileRegistryRoute)
 
 			_, err := r.Reconcile(req)
@@ -1601,16 +1601,16 @@ func TestShouldSetUpCorrectlyInternalCheServerURL(t *testing.T) {
 			}
 
 			// Set up che host for route
-			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, "", "che")
+			cheRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DefaultCheFlavor(testCase.cheCR), "che-host", "che-host", 8080, orgv1.RouteCustomSettings{}, "che")
 			r.client.Create(context.TODO(), cheRoute)
 			// Set up keycloak host for route
-			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, "", deploy.IdentityProviderName)
+			keycloakRoute, _ := deploy.GetSpecRoute(deployContext, deploy.IdentityProviderName, "keycloak", deploy.IdentityProviderName, 8080, orgv1.RouteCustomSettings{}, deploy.IdentityProviderName)
 			r.client.Create(context.TODO(), keycloakRoute)
 			// Set up plugin registry host for route
-			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, "", deploy.PluginRegistryName)
+			pluginRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.PluginRegistryName, "plugin-registry", deploy.PluginRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.PluginRegistryName)
 			r.client.Create(context.TODO(), pluginRegistryRoute)
 			// Set up devfile registry host for route
-			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, "", deploy.DevfileRegistryName)
+			devfileRegistryRoute, _ := deploy.GetSpecRoute(deployContext, deploy.DevfileRegistryName, "devfile-registry", deploy.DevfileRegistryName, 8080, orgv1.RouteCustomSettings{}, deploy.DevfileRegistryName)
 			r.client.Create(context.TODO(), devfileRegistryRoute)
 
 			_, err := r.Reconcile(req)
